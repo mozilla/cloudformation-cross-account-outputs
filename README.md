@@ -1,0 +1,1 @@
+# cloudformation-cross-account-outputs

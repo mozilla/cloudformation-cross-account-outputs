@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Test emission to SNS
+Parameters:
+  SNSArnForPublishingTo:
+    Type: String
+    Default: arn:aws:sns:us-west-2:656532927350:cloudformation-stack-emissions
+    Description: The ARN of the SNS Topic to publish an event to
+Resources:
+  PublishTestToSNS:
+    Type: Custom::PublishIAMRoleArnsToSNS
+    Version: '1.0'
+    Properties:
+      ServiceToken: !Ref SNSArnForPublishingTo
+      category: testing
+      mountain: Mount Foraker
+      state: Alaska
+      MyNumber: 1.234
+      MyMap:
+        MapVal1: baz
+        MapVal2: buz
+      MyListOfStrings:
+        - MyList1
+        - MyList2
+      MyListOfNumbers:
+        - 2.345
+        - 4
+      MyMixedList:
+        - MyMixedList1
+        - 5.678
+      MyBoolean: True
+

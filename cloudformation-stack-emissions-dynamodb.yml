@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: DynamoDB used to store CloudFormation stack emissions
+Metadata:
+  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
+Mappings:
+  Variables:
+    DynamoDBTable:
+      Name: cloudformation-stack-emissions
+Resources:
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: aws-account-id
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - KeyType: HASH
+          AttributeName: aws-account-id
+        - KeyType: RANGE
+          AttributeName: category
+      TableName: !FindInMap [ Variables, DynamoDBTable, Name ]
+

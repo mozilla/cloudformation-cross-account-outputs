@@ -1,7 +1,9 @@
 import cfnresponse
 import boto3, secrets, string, time, traceback, json
+from datetime import datetime
 
 ITEM_CATEGORY_KEY = 'category'
+LAST_UPDATED_KEY = 'last-updated'
 AWS_ACCOUNT_KEY = 'aws-account-id'
 GENERAL_ITEM_CATEGORY = 'general'
 TABLE_NAME = (
@@ -36,6 +38,7 @@ def update_table(message):
     stack_path = message['StackId'].split(':')[5]
     item.setdefault('stack-name', stack_path.split('/')[1])
     item.setdefault('stack-guid', stack_path.split('/')[2])
+    item.setdefault(LAST_UPDATED_KEY, datetime.utcnow().isoformat() + 'Z')
 
     dynamodb = boto3.resource('dynamodb')
 
@@ -49,7 +52,7 @@ def update_table(message):
         # using either ItemCount or Scan
     elif message['RequestType'] in ['Create', 'Update']:
         while not get_table_status(TABLE_NAME):
-            # TODO : Should this be moved out into the CloudFormation tempalte?
+            # TODO : Should this be moved out into the CloudFormation template?
             dynamodb.create_table(
                 AttributeDefinitions=[
                     {'AttributeName': AWS_ACCOUNT_KEY, 'AttributeType': 'S'},

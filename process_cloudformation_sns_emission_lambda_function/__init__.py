@@ -72,9 +72,12 @@ def handler(event, context):
     else:
         print('Custom resource succeeded.')
         status = cfnresponse.SUCCESS
-    physical_id = ''.join(
-        secrets.choice(string.ascii_uppercase + string.digits) for _ in
-        range(13))
-    cfnresponse.send(
-        message, context, status, {},
-        "ProcessCloudFormationSNSEmission-%s" % physical_id)
+    if 'PhysicalResourceId' in message:
+        physical_id = message['PhysicalResourceId']
+    else:
+        random_string = ''.join(
+            secrets.choice(string.ascii_uppercase + string.digits)
+            for _ in range(13))
+        physical_id = "ProcessCloudFormationSNSEmission-{}".format(
+            random_string)
+    cfnresponse.send(message, context, status, {}, physical_id)

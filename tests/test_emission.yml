@@ -1,5 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Test emission to SNS
+Parameters:
+  ADynamicValue:
+    Type: String
+    Default: This is a default value
+    Description: A dynamic value to test stack updates
 Mappings:
   TheRegionYouAreDeployingIn:
     us-west-2:
@@ -25,6 +30,7 @@ Resources:
       category: testing
       mountain: Mount Foraker
       state: Alaska
+      MyDynamicString: !Ref ADynamicValue
       MyNumber: 1.234
       MyMap:
         MapVal1: baz

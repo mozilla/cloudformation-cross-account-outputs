@@ -1,16 +1,27 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Test emission to SNS
-Parameters:
-  SNSArnForPublishingTo:
-    Type: String
-    Default: arn:aws:sns:us-west-2:656532927350:cloudformation-stack-emissions
-    Description: The ARN of the SNS Topic to publish an event to
+Mappings:
+  TheRegionYouAreDeployingIn:
+    us-west-2:
+      WhatIsThisMapping: This constrains the regions in which you can deploy this template to only the regions listed in this mapping. This, for example, prevents deloying in ap-south-1
+      IsNotSupportedPleaseUseADifferentRegion: True
+    us-east-1:
+      WhatIsThisMapping: ''
+      IsNotSupportedPleaseUseADifferentRegion: True
+    us-west-1:
+      WhatIsThisMapping: ''
+      IsNotSupportedPleaseUseADifferentRegion: True
+    eu-west-1:
+      WhatIsThisMapping: ''
+      IsNotSupportedPleaseUseADifferentRegion: True
+Conditions:
+  RunningInAllowedRegion: !Equals [ !FindInMap [ TheRegionYouAreDeployingIn, !Ref 'AWS::Region', IsNotSupportedPleaseUseADifferentRegion ] , True ]
 Resources:
   PublishTestToSNS:
     Type: Custom::PublishIAMRoleArnsToSNS
     Version: '1.0'
     Properties:
-      ServiceToken: !Ref SNSArnForPublishingTo
+      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', '656532927350', 'cloudformation-stack-emissions' ] ]
       category: testing
       mountain: Mount Foraker
       state: Alaska

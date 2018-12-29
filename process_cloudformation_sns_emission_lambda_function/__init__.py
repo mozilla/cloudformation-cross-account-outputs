@@ -2,18 +2,21 @@ import cfnresponse
 import boto3, secrets, string, time, traceback, json
 from datetime import datetime
 
-ITEM_CATEGORY_KEY = 'category'
 LAST_UPDATED_KEY = 'last-updated'
-AWS_ACCOUNT_KEY = 'aws-account-id'
-GENERAL_ITEM_CATEGORY = 'general'
+ACCOUNT_ID_KEY = 'aws-account-id'
+STACK_ID_KEY = 'stack-id'
 TABLE_NAME = (
     'cloudformation-stack-emissions'
     if '${DynamoDBTableName}'.startswith('$' + '{')
     else '${DynamoDBTableName}')
+TABLE_REGION = (
+    'us-west-2'
+    if '${DynamoDBTableRegion}'.startswith('$' + '{')
+    else '${DynamoDBTableRegion}')
 
 
 def get_table_status(table_name):
-    client = boto3.client('dynamodb')
+    client = boto3.client('dynamodb', region_name=TABLE_REGION)
     try:
         while True:
             response = client.describe_table(TableName=table_name)
@@ -28,44 +31,29 @@ def get_table_status(table_name):
 
 def update_table(message):
     item = dict(message['ResourceProperties'])
-    # Force stacks to only be able to update items in their partition
-    item[AWS_ACCOUNT_KEY] = message['StackId'].split(':')[4]
-    # Case-insensitive match to "category". If ResourceProperties has
-    # "Category" and "category" keys, this is non-deterministic
-    item[ITEM_CATEGORY_KEY] = next(
-        (iter([item[x] for x in item if x.lower() == ITEM_CATEGORY_KEY])),
-        GENERAL_ITEM_CATEGORY)
+    del(item['ServiceToken'])
     stack_path = message['StackId'].split(':')[5]
+    stack_guid = stack_path.split('/')[2]
+
+    # Force stacks to only be able to update items that they created
+    item[ACCOUNT_ID_KEY] = message['StackId'].split(':')[4]
+    item[STACK_ID_KEY] = stack_guid
+
     item.setdefault('stack-name', stack_path.split('/')[1])
-    item.setdefault('stack-guid', stack_path.split('/')[2])
+    item.setdefault('region', message['StackId'].split(':')[3])
     item.setdefault(LAST_UPDATED_KEY, datetime.utcnow().isoformat() + 'Z')
 
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto3.resource('dynamodb', region_name=TABLE_REGION)
 
     if message['RequestType'] == 'Delete':
         table = dynamodb.Table(TABLE_NAME)
         table.delete_item(
-            Key={AWS_ACCOUNT_KEY: item[AWS_ACCOUNT_KEY],
-                 ITEM_CATEGORY_KEY: item[ITEM_CATEGORY_KEY]})
+            Key={ACCOUNT_ID_KEY: item[ACCOUNT_ID_KEY],
+                 STACK_ID_KEY: item[STACK_ID_KEY]})
         # We don't check to see if the table is now empty and can be deleted
         # because there's no cheap or easy way to determine if a table is empty
         # using either ItemCount or Scan
     elif message['RequestType'] in ['Create', 'Update']:
-        while not get_table_status(TABLE_NAME):
-            # TODO : Should this be moved out into the CloudFormation template?
-            dynamodb.create_table(
-                AttributeDefinitions=[
-                    {'AttributeName': AWS_ACCOUNT_KEY, 'AttributeType': 'S'},
-                    {'AttributeName': ITEM_CATEGORY_KEY,
-                     'AttributeType': 'S'}],
-                TableName=TABLE_NAME,
-                KeySchema=[{'AttributeName': AWS_ACCOUNT_KEY,
-                            'KeyType': 'HASH'},
-                           {'AttributeName': ITEM_CATEGORY_KEY,
-                            'KeyType': 'RANGE'}],
-                ProvisionedThroughput={
-                    'ReadCapacityUnits': 1, 'WriteCapacityUnits': 1})
-            time.sleep(5)
         table = dynamodb.Table(TABLE_NAME)
         table.put_item(Item=item)
 

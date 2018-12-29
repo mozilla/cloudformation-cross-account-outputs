@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: IAM Role used by CloudFormation SNS emission consumer Lambda functions
+Metadata:
+  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
+Mappings:
+  Variables:
+    DynamoDBTable:
+      Name: cloudformation-stack-emissions
+      Region: us-west-2
+    IAMRole:
+      Name: cloudformation-sns-emission-consumer
+Resources:
+  ProcessCloudFormationSNSEmissionLambdaIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !FindInMap [ Variables, IAMRole, Name ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+        - PolicyName: AllowLambdaLogging
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - logs:*
+                  - iam:ListRoles
+                Resource: '*'
+        - PolicyName: AllowDynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - dynamodb:CreateTable
+                  - dynamodb:DescribeTable
+                  - dynamodb:PutItem
+                  - dynamodb:DeleteItem
+                Resource: !Join [ '', [ 'arn:aws:dynamodb:', !FindInMap [ Variables, DynamoDBTable, Region ], ':', !Ref 'AWS::AccountId', ':table/', !FindInMap [ Variables, DynamoDBTable, Name ]]]

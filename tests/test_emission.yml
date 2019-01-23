@@ -45,4 +45,11 @@ Resources:
         - MyMixedList1
         - 5.678
       MyBoolean: True
+  ASecondPublishTest:
+    Type: Custom::PublishIAMRoleArnsToSNS
+    Version: '1.0'
+    Properties:
+      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', '656532927350', 'cloudformation-stack-emissions' ] ]
+      category: also-testing
+      MyNumber: 4.556
 

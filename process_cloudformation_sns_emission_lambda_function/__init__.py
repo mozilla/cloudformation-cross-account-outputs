@@ -5,6 +5,7 @@ from datetime import datetime
 LAST_UPDATED_KEY = 'last-updated'
 ACCOUNT_ID_KEY = 'aws-account-id'
 STACK_ID_KEY = 'stack-id'
+LOGICAL_RESOURCE_ID_KEY = 'logical-resource-id'
 TABLE_NAME = (
     'cloudformation-stack-emissions'
     if '${DynamoDBTableName}'.startswith('$' + '{')
@@ -35,10 +36,12 @@ def update_table(message):
     stack_path = message['StackId'].split(':')[5]
     stack_guid = stack_path.split('/')[2]
 
-    # Force stacks to only be able to update items that they created
-    item[ACCOUNT_ID_KEY] = message['StackId'].split(':')[4]
+    # Force resources in stacks to only be able to update items that they
+    # created
     item[STACK_ID_KEY] = stack_guid
+    item[LOGICAL_RESOURCE_ID_KEY] = message['LogicalResourceId']
 
+    item[ACCOUNT_ID_KEY] = message['StackId'].split(':')[4]
     item.setdefault('stack-name', stack_path.split('/')[1])
     item.setdefault('region', message['StackId'].split(':')[3])
     item.setdefault(LAST_UPDATED_KEY, datetime.utcnow().isoformat() + 'Z')
@@ -48,8 +51,8 @@ def update_table(message):
     if message['RequestType'] == 'Delete':
         table = dynamodb.Table(TABLE_NAME)
         table.delete_item(
-            Key={ACCOUNT_ID_KEY: item[ACCOUNT_ID_KEY],
-                 STACK_ID_KEY: item[STACK_ID_KEY]})
+            Key={STACK_ID_KEY: item[STACK_ID_KEY],
+                 LOGICAL_RESOURCE_ID_KEY: item[LOGICAL_RESOURCE_ID_KEY]})
         # We don't check to see if the table is now empty and can be deleted
         # because there's no cheap or easy way to determine if a table is empty
         # using either ItemCount or Scan

@@ -44,6 +44,11 @@ create-dynamodb-stack:
 	AWS_DEFAULT_REGION=$(AWS_DEFAULT_REGION) aws cloudformation create-stack --stack-name cloudformation-stack-emissions-dynamodb \
 	  --template-url $(HTTP_BUCKET_TEMPLATE_URI)/cloudformation-stack-emissions-dynamodb.yml
 
+.PHONY: create-test-stack
+create-test-stack:
+	AWS_DEFAULT_REGION=$(AWS_DEFAULT_REGION) aws cloudformation create-stack --stack-name test-stack-emission \
+	  --template-body file://tests/test_emission.yml
+
 .PHONY: update-stacks
 update-stacks: update-consumer-stacks update-role-stack update-dynamodb-stack
 

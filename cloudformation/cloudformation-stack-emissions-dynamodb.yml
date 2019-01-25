@@ -2,26 +2,38 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: DynamoDB used to store CloudFormation stack emissions
 Metadata:
   Source: https://github.com/mozilla/cloudformation-cross-account-outputs
-  TemplateVersion: 3.0.0
+  TemplateVersion: 4.0.0
 Mappings:
   Variables:
     DynamoDBTable:
       Name: cloudformation-stack-emissions
-      LogicalResourceIdKey: logical-resource-id
-      StackIdKey: stack-id
+      SortKey: id
+      AccountIdKey: aws-account-id
+      CategoryKey: category
 Resources:
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: !FindInMap [ Variables, DynamoDBTable, StackIdKey ]
+        - AttributeName: !FindInMap [ Variables, DynamoDBTable, AccountIdKey ]
           AttributeType: S
-        - AttributeName: !FindInMap [ Variables, DynamoDBTable, LogicalResourceIdKey ]
+        - AttributeName: !FindInMap [ Variables, DynamoDBTable, SortKey ]
+          AttributeType: S
+        - AttributeName: !FindInMap [ Variables, DynamoDBTable, CategoryKey ]
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
         - KeyType: HASH
-          AttributeName: !FindInMap [ Variables, DynamoDBTable, StackIdKey ]
+          AttributeName: !FindInMap [ Variables, DynamoDBTable, AccountIdKey ]
         - KeyType: RANGE
-          AttributeName: !FindInMap [ Variables, DynamoDBTable, LogicalResourceIdKey ]
+          AttributeName: !FindInMap [ Variables, DynamoDBTable, SortKey ]
       TableName: !FindInMap [ Variables, DynamoDBTable, Name ]
+      GlobalSecondaryIndexes:
+        - IndexName: !FindInMap [ Variables, DynamoDBTable, CategoryKey ]
+          KeySchema:
+            - KeyType: HASH
+              AttributeName: !FindInMap [ Variables, DynamoDBTable, CategoryKey ]
+            - KeyType: RANGE
+              AttributeName: !FindInMap [ Variables, DynamoDBTable, SortKey ]
+          Projection:
+            ProjectionType: ALL

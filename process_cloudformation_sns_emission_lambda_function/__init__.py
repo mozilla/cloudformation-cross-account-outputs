@@ -1,11 +1,15 @@
 import cfnresponse
-import boto3, secrets, string, time, traceback, json
+import boto3, secrets, string, traceback, json
 from datetime import datetime
 
 LAST_UPDATED_KEY = 'last-updated'
 ACCOUNT_ID_KEY = 'aws-account-id'
 STACK_ID_KEY = 'stack-id'
 LOGICAL_RESOURCE_ID_KEY = 'logical-resource-id'
+SORT_KEY = 'id'
+CATEGORY_KEY = 'category'
+GENERAL_ITEM_CATEGORY = 'general'
+
 TABLE_NAME = (
     'cloudformation-stack-emissions'
     if '${DynamoDBTableName}'.startswith('$' + '{')
@@ -16,20 +20,6 @@ TABLE_REGION = (
     else '${DynamoDBTableRegion}')
 
 
-def get_table_status(table_name):
-    client = boto3.client('dynamodb', region_name=TABLE_REGION)
-    try:
-        while True:
-            response = client.describe_table(TableName=table_name)
-            if response['Table']['TableStatus'] in ['CREATING',
-                                                    'UPDATING', 'DELETING']:
-                time.sleep(5)
-                continue
-            return response['Table']['TableStatus'] == 'ACTIVE'
-    except client.exceptions.ResourceNotFoundException:
-        return False
-
-
 def update_table(message):
     item = dict(message['ResourceProperties'])
     del(item['ServiceToken'])
@@ -38,10 +28,15 @@ def update_table(message):
 
     # Force resources in stacks to only be able to update items that they
     # created
+    item[ACCOUNT_ID_KEY] = message['StackId'].split(':')[4]
+    item.setdefault(CATEGORY_KEY, GENERAL_ITEM_CATEGORY)
+    item[SORT_KEY] = '{}+{}'.format(
+        stack_guid,
+        message['LogicalResourceId'])
+
     item[STACK_ID_KEY] = stack_guid
     item[LOGICAL_RESOURCE_ID_KEY] = message['LogicalResourceId']
 
-    item[ACCOUNT_ID_KEY] = message['StackId'].split(':')[4]
     item.setdefault('stack-name', stack_path.split('/')[1])
     item.setdefault('region', message['StackId'].split(':')[3])
     item.setdefault(LAST_UPDATED_KEY, datetime.utcnow().isoformat() + 'Z')
@@ -51,8 +46,8 @@ def update_table(message):
     if message['RequestType'] == 'Delete':
         table = dynamodb.Table(TABLE_NAME)
         table.delete_item(
-            Key={STACK_ID_KEY: item[STACK_ID_KEY],
-                 LOGICAL_RESOURCE_ID_KEY: item[LOGICAL_RESOURCE_ID_KEY]})
+            Key={ACCOUNT_ID_KEY: item[ACCOUNT_ID_KEY],
+                 SORT_KEY: item[SORT_KEY]})
         # We don't check to see if the table is now empty and can be deleted
         # because there's no cheap or easy way to determine if a table is empty
         # using either ItemCount or Scan

@@ -6,6 +6,10 @@ Parameters:
     Default: This is a default value
     Description: A dynamic value to test stack updates
 Mappings:
+  Variables:
+    SNSTarget:
+      AccountId: 656532927350
+      TopicName: cloudformation-stack-emissions
   TheRegionYouAreDeployingIn:
     us-west-2:
       WhatIsThisMapping: This constrains the regions in which you can deploy this template to only the regions listed in this mapping. This, for example, prevents deloying in ap-south-1
@@ -23,10 +27,10 @@ Conditions:
   RunningInAllowedRegion: !Equals [ !FindInMap [ TheRegionYouAreDeployingIn, !Ref 'AWS::Region', IsNotSupportedPleaseUseADifferentRegion ] , True ]
 Resources:
   PublishTestToSNS:
-    Type: Custom::PublishIAMRoleArnsToSNS
+    Type: Custom::PublishToSNS
     Version: '1.0'
     Properties:
-      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', '656532927350', 'cloudformation-stack-emissions' ] ]
+      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', !FindInMap [ Variables, SNSTarget, AccountId ], !FindInMap [ Variables, SNSTarget, TopicName ] ] ]
       category: testing
       mountain: Mount Foraker
       state: Alaska
@@ -46,10 +50,22 @@ Resources:
         - 5.678
       MyBoolean: True
   ASecondPublishTest:
-    Type: Custom::PublishIAMRoleArnsToSNS
+    Type: Custom::PublishToSNS
     Version: '1.0'
     Properties:
-      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', '656532927350', 'cloudformation-stack-emissions' ] ]
+      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', !FindInMap [ Variables, SNSTarget, AccountId ], !FindInMap [ Variables, SNSTarget, TopicName ] ] ]
       category: also-testing
       MyNumber: 4.556
-
+  AnEmissionWithNoCategory:
+    Type: Custom::PublishToSNS
+    Version: '1.0'
+    Properties:
+      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', !FindInMap [ Variables, SNSTarget, AccountId ], !FindInMap [ Variables, SNSTarget, TopicName ] ] ]
+      MyNumber: 7.89
+#  ANewlyAddedEmission:
+#    Type: Custom::PublishToSNS
+#    Version: '1.0'
+#    Properties:
+#      ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', !FindInMap [ Variables, SNSTarget, AccountId ], !FindInMap [ Variables, SNSTarget, TopicName ] ] ]
+#      category: foo
+#      MyBoolean: False

@@ -38,7 +38,11 @@ Create a CloudFormation template containing
   with the following properties
   * `ServiceToken` : The SNS ARN of the SNS topic you created when deploying the
     infrastructure
-  * An arbitrary number of additional key value pairs. In the example below
+  * An optional `category` field. This field is indexed in DynamoDB and as a result
+    items can be queried by category. If no `category` is set in the resource,
+    it will be set to the value `general` in the DB record. In the example below
+    the `category` value is set to `My Category`
+  * An arbitrary number of additional optional key value pairs. In the example below
     there's a single key value pair with a key of `exampleKey` and value of
     `Example Value`
 
@@ -51,15 +55,18 @@ to receive stack emissions. One way to do this is [with a region Mapping](https:
 ```yaml
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
-  PublishTestToSNS:
-    Type: Custom::PublishIAMRoleArnsToSNS
+  PublishExampleToSNS:
+    Type: Custom::PublishToSNS
     Version: '1.0'
     Properties:
       ServiceToken: !Join [ ':', [ 'arn:aws:sns', !Ref 'AWS::Region', '012345678901', 'cloudformation-stack-emissions' ] ]
+      category: My Category
       exampleKey: Example Value
 ```
 
 ## Fetch emitted outputs
+
+Data is queryable by either the `aws-account-id` or the `category` fields.
 
 You can fetch data from the DynamoDB table with the aws command line. To fetch
 the `exampleKey` value for all emissions in account `012345678901` query like
@@ -74,15 +81,32 @@ aws dynamodb query --table-name cloudformation-stack-emissions \
   --output text --query 'Items[].exampleKey.S'
 ```
 
+or for all accounts given `category` value of `testing` query the secondary
+global index `category` like
+
+```
+aws dynamodb query --table-name cloudformation-stack-emissions \
+  --index-name category \
+  --expression-attribute-names '{"#c": "category"}' \
+  --expression-attribute-values '{":v": {"S": "My Category"}}' \
+  --key-condition-expression "#c = :v" \
+  --projection-expression exampleKey \
+  --output text --query 'Items[].exampleKey.S'
+```
+
 ### Automatically added attributes
 
 The following attributes are always set
 * `aws-account-id` : The AWS account ID in which the CloudFormation stack was
   deployed
-* `stack-id` : The GUID of the CloudFormation stack
+* `id` : The GUID of the CloudFormation stack combined with the Logical Resource
+  name of the CloudFormation resource, separated by a `+` character. Example :
+  `6ff5f130-20d6-11e9-b98a-0a1528792fce+PublishTestToSNS`
 
 The following attributes are set if they aren't passed in the `Properties` of
 the CloudFormation stack
+* `category`: If it's not defined in the CloudFormation template, it's set to
+  `general`
 * `region` : The AWS region in which the CouldFormation stack was deployed
 * `stack-name` : The name of the CloudFormation stack
 * `last-updated` : The datetime that the record was last updated in UTC time
@@ -93,7 +117,13 @@ the CloudFormation stack
 * Partition key : `aws-account-id` which contains the [AWS Account ID](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html)
   of the AWS account that contains the CloudFormation stack which is emitting
   data
-* Sort key : `stack-id` which contains the CloudFormation stack's GUID.
+* Sort key : `id` which contains the the GUID of the CloudFormation stack 
+  combined with the Logical Resource name of the CloudFormation resource, 
+  separated by a `+` character.
+* Global Secondary Index : `category`
+  * Partition key : `category` which contains the category set in the 
+    CloudFormation template or the default of `general`
+  * Sort key : `id`
 * Attributes : All additional Resource Properties of the CloudFormation Custom
   Resource are inserted into a DynamoDB Item as attributes (key value pairs)
-  
+

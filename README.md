@@ -11,15 +11,15 @@ to
      [`cloudformation-stack-emissions-dynamodb.yml`](https://s3-us-west-2.amazonaws.com/public.us-west-2.infosec.mozilla.org/cloudformation-cross-account-outputs/cf/cloudformation-stack-emissions-dynamodb.yml)
      CloudFormation template in the web console with this button
      [![Launch CloudFormation Stack Emission DynamoDB](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=cloudformation-stack-emissions-dynamodb&templateURL=https://s3-us-west-2.amazonaws.com/public.us-west-2.infosec.mozilla.org/cloudformation-cross-account-outputs/cf/cloudformation-stack-emissions-dynamodb.yml),
-     or by creating the table in the web console or on the command line. 
+     or by creating the table in the web console or on the command line. Only one DynamoDB stack in one region need be deployed in the AWS account.
 2. Deploy the CloudFormation template [`cloudformation-sns-emission-consumer-role.yml`](https://s3-us-west-2.amazonaws.com/public.us-west-2.infosec.mozilla.org/cloudformation-cross-account-outputs/cf/cloudformation-sns-emission-consumer-role.yml)
    with this button
    [![Launch CloudFormation SNS Emission Consumer Role](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=cloudformation-sns-emission-consumer-role&templateURL=https://s3-us-west-2.amazonaws.com/public.us-west-2.infosec.mozilla.org/cloudformation-cross-account-outputs/cf/cloudformation-sns-emission-consumer-role.yml)
-   in a single region which will create an IAM Role used by the Lambda function
+   in a single region which will create an IAM Role used by the Lambda function. Only one IAM Role stack in one region need be deployed in the AWS account.
 3. Deploy the CloudFormation template [`cloudformation-sns-emission-consumer.yml`](https://s3-us-west-2.amazonaws.com/public.us-west-2.infosec.mozilla.org/cloudformation-cross-account-outputs/cf/cloudformation-sns-emission-consumer.yml)
-   with these buttons in every region that you need to receive CloudFormation 
+   with these buttons once in every region that you need to receive CloudFormation 
    outputs in. (You're welcome to deploy the template in regions other than 
-   those listed below)
+   those listed below).
    
    * `us-west-2` : [![Launch CloudFormation SNS Emission Consumer](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=cloudformation-sns-emission-consumer&templateURL=https://s3-us-west-2.amazonaws.com/public.us-west-2.infosec.mozilla.org/cloudformation-cross-account-outputs/cf/cloudformation-sns-emission-consumer.yml)
    * `us-east-1` : [![Launch CloudFormation SNS Emission Consumer](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=cloudformation-sns-emission-consumer&templateURL=https://s3-us-west-2.amazonaws.com/public.us-west-2.infosec.mozilla.org/cloudformation-cross-account-outputs/cf/cloudformation-sns-emission-consumer.yml)

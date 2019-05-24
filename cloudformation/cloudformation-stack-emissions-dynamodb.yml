@@ -1,39 +1,83 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: DynamoDB used to store CloudFormation stack emissions
+
+Parameters:
+  DynamoDBTableName: 
+    Type: String
+    Description: The name of the emission dynamodb table
+    Default: cloudformation-stack-emissions
+    AllowedPattern: "[A-Za-z0-9._-]+"
+    ConstraintDescription: Only alphanumeric characters, dash, underscores and dot
+    MinLength: 3
+    MaxLength: 255
+
+  DynamoDBAttributeSortKey:
+    Type: String
+    Description: The attribute name used for sorting the table
+    Default: id
+    AllowedPattern: "[A-Za-z0-9._-]+"
+    ConstraintDescription: Only alphanumeric characters, dash, underscores and dot
+    MinLength: 1
+    MaxLength: 255
+
+  DynamoDBAttributeAccountIdKey:
+    Type: String
+    Description: The attribute name that will contain the AWS account ids
+    Default: aws-account-id
+    AllowedPattern: "[A-Za-z0-9._-]+"
+    ConstraintDescription: Only alphanumeric characters, dash, underscores and dot
+    MinLength: 1
+    MaxLength: 255
+
+  DynamoDBAttributeCategoryKey:
+    Type: String
+    Description: The attribute name that will contain the category
+    Default: category
+    AllowedPattern: "[A-Za-z0-9._-]+"
+    ConstraintDescription: Only alphanumeric characters, dash, underscores and dot
+    MinLength: 1
+    MaxLength: 255
+
 Metadata:
   Source: https://github.com/mozilla/cloudformation-cross-account-outputs
   TemplateVersion: 4.0.0
-Mappings:
-  Variables:
-    DynamoDBTable:
-      Name: cloudformation-stack-emissions
-      SortKey: id
-      AccountIdKey: aws-account-id
-      CategoryKey: category
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label: 
+          default: "DynamoDB table configuration"
+        Parameters: 
+          - DynamoDBTableName
+          - DynamoDBAttributeSortKey
+          - DynamoDBAttributeAccountIdKey
+          - DynamoDBAttributeCategoryKey
+    ParameterLabels: 
+      VPCID: 
+        default: "Which VPC should this be deployed to?"
+
 Resources:
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: !FindInMap [ Variables, DynamoDBTable, AccountIdKey ]
+        - AttributeName: !Ref DynamoDBAttributeAccountIdKey
           AttributeType: S
-        - AttributeName: !FindInMap [ Variables, DynamoDBTable, SortKey ]
+        - AttributeName: !Ref DynamoDBAttributeSortKey
           AttributeType: S
-        - AttributeName: !FindInMap [ Variables, DynamoDBTable, CategoryKey ]
+        - AttributeName: !Ref DynamoDBAttributeCategoryKey
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
         - KeyType: HASH
-          AttributeName: !FindInMap [ Variables, DynamoDBTable, AccountIdKey ]
+          AttributeName: !Ref DynamoDBAttributeAccountIdKey
         - KeyType: RANGE
-          AttributeName: !FindInMap [ Variables, DynamoDBTable, SortKey ]
-      TableName: !FindInMap [ Variables, DynamoDBTable, Name ]
+          AttributeName: !Ref DynamoDBAttributeSortKey
+      TableName: !Ref DynamoDBTableName
       GlobalSecondaryIndexes:
-        - IndexName: !FindInMap [ Variables, DynamoDBTable, CategoryKey ]
+        - IndexName: !Ref DynamoDBAttributeCategoryKey
           KeySchema:
             - KeyType: HASH
-              AttributeName: !FindInMap [ Variables, DynamoDBTable, CategoryKey ]
+              AttributeName: !Ref DynamoDBAttributeCategoryKey
             - KeyType: RANGE
-              AttributeName: !FindInMap [ Variables, DynamoDBTable, SortKey ]
+              AttributeName: !Ref DynamoDBAttributeSortKey
           Projection:
             ProjectionType: ALL

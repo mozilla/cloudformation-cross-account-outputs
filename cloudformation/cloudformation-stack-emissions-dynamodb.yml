@@ -50,9 +50,6 @@ Metadata:
           - DynamoDBAttributeSortKey
           - DynamoDBAttributeAccountIdKey
           - DynamoDBAttributeCategoryKey
-    ParameterLabels: 
-      VPCID: 
-        default: "Which VPC should this be deployed to?"
 
 Resources:
   DynamoDBTable:
@@ -81,3 +78,9 @@ Resources:
               AttributeName: !Ref DynamoDBAttributeSortKey
           Projection:
             ProjectionType: ALL
+
+Outputs: 
+  # Adding the table name as output is very useful to include this 
+  # template as a nested stack.
+  DynamoDBTableName:
+    Value: !Ref DynamoDBTableName

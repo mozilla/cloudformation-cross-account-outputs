@@ -94,6 +94,18 @@ aws dynamodb query --table-name cloudformation-stack-emissions \
   --output text --query 'Items[].exampleKey.S'
 ```
 
+Or to get exampleKey from a specific record based on an AWS account ID and category
+
+```
+aws dynamodb query --table-name cloudformation-stack-emissions \
+  --expression-attribute-names '{"#a": "aws-account-id", "#c": "category"}' \
+  --expression-attribute-values '{":i": {"S": "012345678901"}, ":v": {"S": "My Category"}}' \
+  --key-condition-expression "#a = :i" \
+  --filter-expression "#c = :v" \
+  --projection-expression exampleKey \
+  --output text --query 'Items[].exampleKey.S'
+```
+
 ### Automatically added attributes
 
 The following attributes are always set

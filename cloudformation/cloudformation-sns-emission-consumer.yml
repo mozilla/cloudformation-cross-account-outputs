@@ -67,7 +67,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        ZipFile: !Sub >
+        ZipFile: !Sub |
           import cfnresponse
           import boto3, secrets, string, traceback, json
           from datetime import datetime

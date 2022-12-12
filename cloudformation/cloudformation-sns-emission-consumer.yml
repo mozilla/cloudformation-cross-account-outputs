@@ -150,7 +150,7 @@ Resources:
                       random_string)
               cfnresponse.send(message, context, status, {}, physical_id)
       Handler: index.handler
-      Runtime: python3.6
+      Runtime: python3.9
       Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${EmissionSNSConsumerIAMRoleName}'
       Timeout: 20
   

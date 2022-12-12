@@ -29,6 +29,7 @@ Parameters:
 
 Metadata:
   Source: https://github.com/mozilla/cloudformation-cross-account-outputs
+  TemplateVersion: 4.1.0
 
 Resources:
   ProcessCloudFormationSNSEmissionLambdaIAMRole:

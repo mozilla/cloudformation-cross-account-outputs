@@ -39,7 +39,7 @@ Parameters:
 
 Metadata:
   Source: https://github.com/mozilla/cloudformation-cross-account-outputs
-  TemplateVersion: 4.0.0
+  TemplateVersion: 4.1.0
 
 Resources:
   CloudFormationEmissionSNSTopic:
@@ -67,7 +67,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        ZipFile: !Sub >
+        ZipFile: !Sub |
           import cfnresponse
           import boto3, secrets, string, traceback, json
           from datetime import datetime
@@ -150,7 +150,7 @@ Resources:
                       random_string)
               cfnresponse.send(message, context, status, {}, physical_id)
       Handler: index.handler
-      Runtime: python3.6
+      Runtime: python3.9
       Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${EmissionSNSConsumerIAMRoleName}'
       Timeout: 20
   

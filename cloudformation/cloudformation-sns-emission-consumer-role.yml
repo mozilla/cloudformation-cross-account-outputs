@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: IAM Role used by CloudFormation SNS emission consumer Lambda functions
 
+Metadata:
+  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
+  TemplateVersion: 4.2.0
+
 Parameters:
   DynamoDBTableName: 
     Type: String
@@ -26,10 +30,6 @@ Parameters:
     ConstraintDescription: Should match the role name regex
     MinLength: 1
     MaxLength: 64
-
-Metadata:
-  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
-  TemplateVersion: 4.1.0
 
 Resources:
   ProcessCloudFormationSNSEmissionLambdaIAMRole:

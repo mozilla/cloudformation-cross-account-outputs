@@ -1,6 +1,19 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: DynamoDB used to store CloudFormation stack emissions
 
+Metadata:
+  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
+  TemplateVersion: 4.2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "DynamoDB table configuration"
+        Parameters:
+          - DynamoDBTableName
+          - DynamoDBAttributeSortKey
+          - DynamoDBAttributeAccountIdKey
+          - DynamoDBAttributeCategoryKey
+
 Parameters:
   DynamoDBTableName: 
     Type: String
@@ -37,19 +50,6 @@ Parameters:
     ConstraintDescription: Only alphanumeric characters, dash, underscores and dot
     MinLength: 1
     MaxLength: 255
-
-Metadata:
-  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
-  TemplateVersion: 4.1.0
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label: 
-          default: "DynamoDB table configuration"
-        Parameters: 
-          - DynamoDBTableName
-          - DynamoDBAttributeSortKey
-          - DynamoDBAttributeAccountIdKey
-          - DynamoDBAttributeCategoryKey
 
 Resources:
   DynamoDBTable:

@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: SNS topic that receives CloudFormation Custom Resource SNS emissions and a Lambda function that processes those emissions, storing them in DynamoDB
 
+Metadata:
+  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
+  TemplateVersion: 4.2.0
+
 Parameters: 
 
   DynamoDBTableName: 
@@ -36,10 +40,6 @@ Parameters:
     ConstraintDescription: Should match the role name regex
     MinLength: 1
     MaxLength: 64
-
-Metadata:
-  Source: https://github.com/mozilla/cloudformation-cross-account-outputs
-  TemplateVersion: 4.1.0
 
 Resources:
   CloudFormationEmissionSNSTopic:
@@ -150,7 +150,7 @@ Resources:
                       random_string)
               cfnresponse.send(message, context, status, {}, physical_id)
       Handler: index.handler
-      Runtime: python3.9
+      Runtime: python3.13
       Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${EmissionSNSConsumerIAMRoleName}'
       Timeout: 20
   
